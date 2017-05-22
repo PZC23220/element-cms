@@ -8,7 +8,7 @@
                     <img :src="value.thumbnail" :alt="key" v-for="(value,key) in scope.row.img" class="thumbnail-img" @click="handleImg(value.thumbnail)" v-if="key < 3">
                 </template>
             </el-table-column>
-            <el-table-column label="分类">
+            <el-table-column label="分类" width=200>
                 <template scope="scope">
                     <span>{{transformCid(scope.row.cid)}}</span>
                 </template>
@@ -205,8 +205,9 @@ export default {
     height: 50px;
 }
 .thumbnail-img{
-    width: 100px;
+    /*width: 100px;*/
     height: 100px;
+    margin-right: 10px;
 }
 .dialog-img{
     width: auto !important;
