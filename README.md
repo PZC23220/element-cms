@@ -1,4 +1,4 @@
-# tech stacks
+# Tech stacks
 
 > vue+webpack+vue-router+axios+vuex+element-ui
 
