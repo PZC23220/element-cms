@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 const instance = axios.create({
-    baseURL: 'http://jethome.com/',
-    timeout: 3000
+    baseURL: 'http://jethome.newsjet.io/',
+    timeout: 5000
 });
 instance.interceptors.response.use(function(response){
     if(response.status === 200){
