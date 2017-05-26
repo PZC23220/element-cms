@@ -15,6 +15,9 @@ import matchlist from '../views/matchlist.vue';
 import topics from '../views/topics.vue';
 import tabs from '../views/tabs.vue';
 import newsjet from '../views/newsjet.vue';
+import gif from '../views/gif.vue';
+
+
 import girls from '../views/girls/index.vue';
 
 export default new VueRouter({
@@ -39,7 +42,8 @@ export default new VueRouter({
                 {path: 'column', component: column},
                 {path: 'matchlist', component: matchlist},
                 {path: 'topics', component: topics},
-                {path: 'tabs', component: tabs}
+                {path: 'tabs', component: tabs},
+                {path: 'GIF', component: gif}
             ]
         },{
             path: '/girls',
