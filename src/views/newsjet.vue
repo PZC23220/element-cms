@@ -14,6 +14,7 @@
               <el-menu-item index="matchlist">比赛列表</el-menu-item>
               <el-menu-item index="topics">专题配置页</el-menu-item>
               <el-menu-item index="tabs">Tab配置页</el-menu-item>
+              <el-menu-item index="gif">GIF配置页</el-menu-item>
             </el-menu>
         </nav>
       <div class="content">
