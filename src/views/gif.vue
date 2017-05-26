@@ -1,16 +1,16 @@
 <template lang="html">
     <div class="main">
-    <template :data="gifList" :stripe="true" v-loading.body="loading" max-height="550">	
+    <template :data="gifList" :stripe="true" v-loading.body="loading" max-height="550">
 	    <ul class="gif-ul">
 	        <li v-for="(value,key) in gifList">
 		        <img :src="value.url" :alt="key"  class="gif-img" @click="handleImg(value.url)">
 		        <div class="opa-radio">
-			        <template>
-					  <el-radio class="radio" v-model="value.status" :label="1" @click="clickHandleUPdateGIF(1,value.aid)">通过</el-radio>
-					  <el-radio class="radio" v-model="value.status" :label="0" @click="clickHandleUPdateGIF(0,value.aid)">不通过</el-radio>
-					</template>	
+                    <el-radio-group v-model="value.status" @change="clickHandleUPdateGIF">
+					  <el-radio class="radio" :label="1">通过</el-radio>
+					  <el-radio class="radio" :label="0">不通过</el-radio>
+                  </el-radio-group>
 		        </div>
-				
+
 		    </li>
 	    </ul>
     </template>
@@ -142,7 +142,7 @@ ul,li {
 }
 .block{
     text-align: right;
-    margin-top: 20px;    
+    margin-top: 20px;
 }
 .v-modal {
 	display: none;
