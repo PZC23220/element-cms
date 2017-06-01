@@ -1,11 +1,21 @@
 <template lang="html">
     <div class="main">
+    <template>
+      <el-select v-model="value" clearable  placeholder="请选择GIF状态" @change="selectGif(value)">
+        <el-option
+          v-for="item in options"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value">
+        </el-option>
+      </el-select>
+    </template>
     <template :data="gifList" :stripe="true" v-loading.body="loading" max-height="550">
 	    <ul class="gif-ul">
 	        <li v-for="(value,key) in gifList">
 		        <img :src="value.url" :alt="key"  class="gif-img" @click="handleImg(value.url)">
 		        <div class="opa-radio">
-                    <el-radio-group v-model="value.status" @change="clickHandleUPdateGIF">
+                    <el-radio-group v-model="value.status" @change="clickHandleUPdateGIF(value.status,value.aid)">
 					  <el-radio class="radio" :label="1">通过</el-radio>
 					  <el-radio class="radio" :label="0">不通过</el-radio>
                   </el-radio-group>
@@ -44,11 +54,15 @@ export default {
             currentPage: 1,
             girlsCategory: '', // 操作，点击girl的当前分类
             girlsId: '', // 操作，点击girl的id
-            gifList: [{
-                id: null,
-                url: '',
-                status:0
-            }]
+            gifList: [],
+            options: [{
+                value: 0,
+                label: "不通过"
+            },{
+                value: 1,
+                label: "通过"
+            }],
+            value: "",
         }
     },
     methods:{
@@ -64,20 +78,28 @@ export default {
                 }
             }).then(function(res){
                 self.loading = false;
-                if(res.success){
-                    self.$message({
-                      message: '修改GIF状态成功',
-                      type: 'success'
-                    });
-                    // 刷新当前页面数据
-                    self.handleCurrentChange(self.currentPage);
-                }else{
-                    self.$message.error('修改GIF状态失败');
-                }
+                self.$message({
+                  message: '修改GIF状态成功',
+                  type: 'success'
+                });
+                // 刷新当前页面数据
+                // self.handleCurrentChange(self.currentPage);
             });
         },
-        change: function(val){
-            console.log(val);
+        // 获取指定状态的GIF
+        selectGif(value) {
+            console.log(value);
+            var self = this;
+            http.get('/select_gif', {
+                params:{
+                    start: 0,
+                    status: value
+                }
+            }).then(function(res){
+                self.loading = false;
+                self.gifList = res;
+                self.currentPage = 1;
+            });
         },
         // 点击分页器页数
         handleCurrentChange(val) {
@@ -87,7 +109,7 @@ export default {
             http.get('/select_gif', {
                 params:{
                     start: (val-1)*50,
-                    rows: 50
+                    status: self.value
                 }
             }).then(function(res){
                 self.loading = false;
@@ -104,10 +126,9 @@ export default {
     },
     created: function(){
         var self = this;
-        axios.all([http.get('/select_gif?start=0&rows=50')])
-            .then(axios.spread(function(res1){
-                self.gifList = res1;
-            }));
+        http.get('/select_gif?start=0').then(function(res){
+            self.gifList = res;
+        });
     }
 }
 </script>
@@ -119,9 +140,11 @@ export default {
 ul,li {
 	list-style: none;
 	overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
 .gif-ul {
-	max-height: 550px;
+	max-height: 70vh;
 	overflow: auto;
 }
 .gif-ul li {
@@ -146,6 +169,9 @@ ul,li {
 }
 .v-modal {
 	display: none;
+}
+.el-select {
+    margin-bottom: 10px;
 }
 
 </style>

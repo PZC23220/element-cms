@@ -28,6 +28,7 @@ export default {
 header{
     background: #324157;
     padding: 0 50px;
+    max-height: 10vh;
 }
 *{
     padding: 0;
@@ -48,5 +49,12 @@ header{
     bottom: 0;
     overflow: auto;
     padding: 30px 20px 10px;
+    max-height: 90vh;
+}
+.el-table {
+  max-height: 80vh;
+}
+.el-table__body-wrapper {
+  height: 70vh;
 }
 </style>

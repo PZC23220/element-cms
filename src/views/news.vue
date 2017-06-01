@@ -25,17 +25,39 @@
         </el-form>
 
         <!-- table -->
-        <el-table :data="tableData" style="width: 100%">
-          <el-table-column prop="date" label="编号" width="200"></el-table-column>
-          <el-table-column prop="name" label="新闻ID" width="100"></el-table-column>
-          <el-table-column prop="address" label="新闻标题"></el-table-column>
-          <el-table-column prop="test" label="当前评论数"></el-table-column>
-          <el-table-column prop="test2" label="扒取评论数"></el-table-column>
-          <el-table-column prop="action" label="操作"></el-table-column>
+        <el-table :data="newsList" stripe border style="width: 100%">
+          <el-table-column label="编号" width="200">
+            <template scope="scope">
+              <span size="small">{{scope.$index+1}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="id" label="新闻ID"></el-table-column>
+          <el-table-column prop="title" label="新闻标题"></el-table-column>
+          <el-table-column prop="commentCount" label="当前评论数"></el-table-column>
+          <el-table-column label="评论" scope="scope">
+            <template scope="scope">
+              <el-button size="small" @click="handlePush(scope.$index, scope.row)">评论</el-button>
+            </template>
+          </el-table-column>
+          <el-table-column prop="" label="立即推送">
+            <template scope="scope">
+              <el-button size="small" @click="handlePush(scope.$index, scope.row)">立即推送</el-button>
+            </template>
+          </el-table-column>
+          <el-table-column label="修改新闻分类">
+            <template scope="scope">
+              <el-button>{{transformCategory_id(scope.row.category_id)}}</el-button>
+            </template>
+          </el-table-column>
+          <el-table-column label="去重">
+            <template scope="scope">
+              <el-button size="small" @click="handlePush(scope.$index, scope.row)">去重</el-button>
+            </template>
+          </el-table-column>
         </el-table>
 
         <!-- 分页 -->
-        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"  :page-sizes="[100, 200, 300, 400]" :page-size="100" layout="total, sizes, prev, pager, next, jumper" :total="400">
+        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange"  :page-sizes="[20, 50, 100]" :page-size="20" layout=" sizes, prev, pager, next, jumper" :total="400">
         </el-pagination>
 
     </div>
@@ -44,6 +66,7 @@
 <script>
 
 import http from 'U/http.js';
+import axios from 'axios';
 
 export default {
     data() {
@@ -55,55 +78,49 @@ export default {
                 news_title: '',
                 category_value: ''
             },
-            tableData: [{
-                    date: '2016-05-01',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1519 弄'
-                }, {
-                    date: '2016-05-03',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1516 弄'
-                }, {
-                    date: '2016-05-04',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1517 弄'
-                }, {
-                    date: '2016-05-04',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1517 弄'
-                }, {
-                    date: '2016-05-04',
-                    name: '王小虎',
-                    address: '上海市普陀区金沙江路 1517 弄'
-                }]
+            newsList: []
             };
         },
         methods: {
-            onSubmit() {
-                console.log('submit!');
-                console.log(this.form);
-            },
-            selectCategory(param) {
-                console.log(param);
-                this.category_value = param;
-            },
-            handleSizeChange(val) {
-                console.log(`每页 ${val} 条`);
-            },
-            handleCurrentChange(val) {
-                this.currentPage = val;
-                console.log(`当前页: ${val}`);
-            }
+          onSubmit() {
+              console.log('submit!');
+              console.log(this.form);
+          },
+          selectCategory(param) {
+              console.log(param);
+              this.category_value = param;
+          },
+          handleSizeChange(val) {
+              console.log(`每页 ${val} 条`);
+          },
+          handleCurrentChange(val) {
+              this.currentPage = val;
+              console.log(`当前页: ${val}`);
+          },
+          // 点击推送
+          handlePush: function(index, row){
+
+          },
+          // category_id中英文map
+          transformCategory_id: function(cid){
+              var self = this;
+              var newMap = {};
+              for(var i = 0, len = self.options.length; i < len; i++){
+                  newMap[self.options[i]['cid']] = self.options[i]['channel'];
+              }
+              console.log(newMap);
+              return newMap[cid];
+          }
         },
         created: function(){
             var self = this;
-            // 初始化新闻分类显示
-            http.get('/api/v1/news/category').then(function(res){
-                if(res.success){
-                    self.options = res.data;
-                }
-            });
-            // 获取新闻列表
+            axios.all([http.get('japi/news/hot?start=0&rows=20&version=2'), http.get('/api/v1/news/category')])
+            .then(axios.spread(function(res1, res2){
+                self.newsList = res1.data.top;
+              console.log(self.newsList);
+                self.options = res2.data;
+                console.log(res2);
+            }));
         }
     }
 </script>

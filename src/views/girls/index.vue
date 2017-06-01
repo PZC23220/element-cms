@@ -1,7 +1,7 @@
 <template lang="html">
     <div class="main">
         <!-- table -->
-        <el-table style="width: 100%;" :data="girlsList" :stripe="true" v-loading.body="loading" max-height="550">
+        <el-table style="width: 100%;" :data="girlsList" :stripe="true" v-loading.body="loading">
             <el-table-column label="id" width="100" prop="id"></el-table-column>
             <el-table-column label="预览" prop="">
                 <template scope="scope">
