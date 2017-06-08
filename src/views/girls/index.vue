@@ -134,9 +134,6 @@ export default {
                 }
             });
         },
-        change: function(val){
-            console.log(val);
-        },
         // 修改分页器每页显示数量
         handleSizeChange(val) {
             var self = this;

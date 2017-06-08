@@ -2,14 +2,11 @@
     <div>
         <!-- 筛选区域 -->
         <el-form label-width="80px" :inline="true">
-          <el-form-item label="视频ID">
-            <el-input v-model="form.id"></el-input>
+          <el-form-item label="">
+            <el-input placeholder="视频ID" v-model="form.id" icon="search" :on-icon-click="searchSigleVideo"></el-input>
           </el-form-item>
-          <el-form-item label="视频标题">
-            <el-input v-model="form.title"></el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button type="primary" @click="onSubmit">搜索</el-button>
+          <el-form-item label="">
+            <el-input placeholder="视频标题" v-model="form.title" icon="search" :on-icon-click="searchVideoTitle"></el-input>
           </el-form-item>
         </el-form>
 
@@ -28,12 +25,12 @@
           <el-table-column prop="title" label="视频标题"></el-table-column>
           <el-table-column label="评论" scope="scope">
             <template scope="scope">
-              <el-button size="small" @click="handlePush(scope.$index, scope.row)">评论</el-button>
+              <el-button size="small" @click="toCommentPage(scope.row)">评论</el-button>
             </template>
           </el-table-column>
           <el-table-column prop="" label="立即推送">
             <template scope="scope">
-              <el-button size="small" @click="handlePush(scope.$index, scope.row)">立即推送</el-button>
+              <el-button size="small" @click="handlePush(scope.row.id)">立即推送</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -46,36 +43,28 @@
         <el-dialog :title="videoTitle" size="large" v-model="dialogVideoVisible" custom-class="dialog-video" :before-close="handleClose">
           <iframe width="100%" height="650" :src="dialogVideoSrc" frameborder="0" allowfullscreen></iframe>
         </el-dialog>
-        
-        <!-- 评论弹窗 -->
-        <el-dialog title="视频评论" size="large" :visible.sync="dialogFormVisible">
-          <div style="float:left;width:48%;padding-right: 3%;"> 
-            <h3>已发表评论</h3>
-            <el-form label-position="left" label-width="60px">
-              <el-form-item label="" v-for="value in contentForm">
-                <img :src="value.src" alt="">
-                <el-input type="textarea" :rows="3" :value="value.content"></el-input>
-              </el-form-item>
-            </el-form>
-            <div slot="footer" class="dialog-footer" style="padding-left: 60px;padding-bottom: 20px;">
-              <el-button type="primary" @click="dialogFormVisible = false">发  布</el-button>
-            </div>
-          </div>
-          <div style="float:left;width:48%;">
-            <h3>创建/扒取评论</h3>
-            <el-form label-position="left" label-width="60px">
-              <el-form-item label="" :data="contentForm">
-                <img src="https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQQKSf64XtnT5E6zRFshC8qui6sjNZXV6tZnSuN940IARpruqlx" alt="">
-                <el-input type="textarea" :rows="3"></el-input>
-              </el-form-item>
-            </el-form>
-            <div slot="footer" class="dialog-footer" style="padding-left: 60px;padding-bottom: 20px;">
-              <el-button type="primary" @click="dialogFormVisible = false">发  布</el-button>
-              <el-button type="primary" @click="dialogFormVisible = false">添加更多</el-button>
-            </div>
-          </div>
-        </el-dialog>
 
+        <!-- 推送 -->
+        <el-dialog :title="'推送新闻ID:'+pushId" size="small" v-model="pushVisible" v-loading="loading2" element-loading-text="正在推送。。。">
+          <template>
+            <el-checkbox-group v-model="platformList">
+              请选择平台：
+              <el-checkbox label="android"></el-checkbox>
+              <el-checkbox label="ios"></el-checkbox>
+            </el-checkbox-group>
+          </template>
+          <p style="margin-bottom:20px;">如果要更改新闻描述，新闻标题要一同编辑才会生效</p>
+          <el-input placeholder="请输入视频标题" v-model="editVideoTitle">
+            <template slot="prepend">视频标题：</template>
+          </el-input>
+          <el-input placeholder="请输入视频描述" v-model="editVideoDesc">
+            <template slot="prepend">视频描述：</template>
+          </el-input>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="pushVisible = false">取 消</el-button>
+            <el-button type="primary" @click="clickHandlePush()">确 定</el-button>
+          </span>
+        </el-dialog>
     </div>
 </template>
 
@@ -92,36 +81,55 @@ export default {
             pageNum: 20,
             dialogVideoVisible: false,
             dialogFormVisible: true,
+            pushVisible: false,
+            loading2: false,
+            pushId: '',
             dialogVideoSrc: '',
             videoTitle: '',
+            editVideoTitle: '',
+            editVideoDesc: '',
             form: {
-                news_id: '',
-                comment_num: '',
-                news_title: '',
-                category_value: ''
+                id: '',
+                title: ''
             },
-            contentForm: [{
-              src: 'https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQQKSf64XtnT5E6zRFshC8qui6sjNZXV6tZnSuN940IARpruqlx',
-              content: 'hahahahaha'
-            },
-            {
-              src: 'http://wx3.sinaimg.cn/mw690/9fcdce0dgy1fbujko1cf6j20jg0jgjse.jpg',
-              content: 'hehehehe'
-            }],
+            platformList: [],
             videosList: []
             };
         },
         methods: {
-          onSubmit() {
-              console.log('submit!');
-              console.log(this.form);
+          searchSigleVideo() {
+            var self = this;
+            if(self.form.id != '') {
+              http.get('/japi/video/get',{
+                params: {
+                  id: self.form.id
+                }
+              }).then(function(res){
+                self.videosList = [];
+                self.videosList.push(res.data);
+                console.log(self.videosList)
+              });
+            } else {
+              location.reload();
+            }
+          },
+          searchVideoTitle() {
+            var self = this;
+            if(self.form.title != '') {
+              http.get('/solr/videos/select?wt=json&fl=title,vid,commentCount,category_id:cid,desc&sort=score%20desc&q=title:' + self.form.title + '&rows=100').then(function(res){
+                self.videosList = res.response.docs;
+              });
+            } else {
+              location.reload();
+            }
+
           },
           // 点击视频预览
           handleVideo: function(params){
               var self = this;
               self.dialogVideoVisible = true;
               self.dialogVideoSrc = 'https://www.youtube.com/embed/' + params;
-              console.log(params);
+              self.videoTitle = '视频源链接：' +dialogVideoSrc;
           },
           // 关闭视频预览
           handleClose(done) {
@@ -158,10 +166,48 @@ export default {
                 self.videosList = res;
             });
           },
+          // 评论
+          toCommentPage(obj) {
+            console.log(obj);
+            var title = encodeURI(obj.title);
+            var _href = 'http://' + window.location.host + '/#/newsjet/comment?title' +title+ '&public_time=' + obj.public_time + '&aid='+ obj.id+ '&url=' + obj.url + '&imgs=' + obj.imgs;
+            console.log(_href);
+            window.location.href= _href;
+          },
           // 点击推送
-          handlePush: function(index, row){
-
-          }
+          handlePush: function(aid){
+            var self = this;
+            self.pushVisible = true;
+            self.pushId = aid;
+          },
+          clickHandlePush() {
+            var self = this;
+            self.loading2 = true;
+            self.platformList.forEach(function(value){
+              var dataParams = {
+                aid: self.pushId,
+                type: value,
+                pushtype: 'video'
+              }
+              if (self.editNewsTitle) {
+                  dataParams.title = self.editVideoTitle;
+              }
+              if (self.editNewsDesc) {
+                  dataParams.body = self.editVideoDesc;
+              }
+              console.log(dataParams)
+              http.get('/people_push', {
+                  params:dataParams
+              }).then(function(res){
+                  console.log(res);
+                  self.loading2 = false;
+                  window.location.reload();
+              });
+              setTimeout(() => {
+                self.loading2 = false;
+              }, 30000);
+            });
+          },
         },
         created: function(){
           var self = this;
@@ -174,21 +220,7 @@ export default {
 </script>
 
 <style lang="css">
-.el-form img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  float: left;
-  margin-right: 10px;
-}
-h3 {
-  margin-bottom: 20px;
-}
-.el-form-item__content{
-  margin-left: 0 !important;
-}
-.el-form .el-textarea {
-  float: left;
-  width: calc(100% - 50px);
-}
+  .el-pagination {
+    margin-top: 20px;
+  }
 </style>
